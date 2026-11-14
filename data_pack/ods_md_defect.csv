@@ -1,0 +1,13 @@
+﻿defect_code,defect_name,shop_code,defect_group
+DGA00,缺件补装,GA,缺件补装
+DGA01,线束插接不良,GA,线束插接不良
+DPT02,漆面颗粒,PT,漆面颗粒
+DGA03,异响/紧固,GA,异响/紧固
+DGA04,装配错漏,GA,装配错漏
+DPT050,色差,PT,色差/打磨印
+DPT051,打磨印,PT,色差/打磨印
+DPT06,流挂/橘皮,PT,流挂/橘皮
+DBD07,焊点缺陷,BD,焊点缺陷
+DBD08,间隙面差,BD,间隙面差
+DST09,表面缺陷,ST,表面缺陷
+DBD10,其他,BD,其他

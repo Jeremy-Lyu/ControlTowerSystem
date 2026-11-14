@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manufacturing Control Tower · 示例数据</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/vendor/echarts.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <aside id="nav">
+    <div class="brand"><div class="logo">CT</div><div><div class="bt">Control Tower</div><div class="bs">制造控制塔 · 演示系统</div></div></div>
+    <div id="navlist"></div>
+    <div class="navfoot">X集团（脱敏）<br>全部为示例数据</div>
+  </aside>
+  <main>
+    <header id="topbar">
+      <div class="tb-left">
+        <div id="crumb" class="crumb"></div>
+      </div>
+      <div class="tb-right">
+        <span class="demo-tag" title="本系统所有数字均为示例数据，不代表任何真实企业经营数据">示例数据</span>
+        <label class="slicer">月份<select id="sl-month"></select></label>
+        <label class="slicer">工厂<select id="sl-plant"></select></label>
+        <label class="slicer">车间<select id="sl-shop"></select></label>
+        <label class="slicer role">角色<select id="sl-role"></select></label>
+        <button id="btn-story" class="btn primary" title="按面试演示路径一步步讲解">▶ 演示故事</button>
+      </div>
+    </header>
+    <section id="pagehead"><div><h1 id="ptitle"></h1><div id="psub" class="psub"></div></div><div id="pactions"></div></section>
+    <section id="kpis" class="kpis"></section>
+    <section id="canvas" class="grid"></section>
+    <footer id="foot">Manufacturing Control Tower 演示系统 · 数据为合成的示例数据（seed 固定、可复现）· 口径见「指标口径库」</footer>
+  </main>
+</div>
+<div id="story" class="story hidden">
+  <div class="story-h"><span id="story-step"></span><button id="story-x" class="x">×</button></div>
+  <div id="story-title" class="story-t"></div>
+  <div id="story-text" class="story-b"></div>
+  <div class="story-f"><button id="story-prev" class="btn">上一步</button><button id="story-next" class="btn primary">下一步</button></div>
+</div>
+<div id="modal" class="modal hidden"><div class="modal-c"><div class="modal-h"><span id="modal-t"></span><button class="x" onclick="closeModal()">×</button></div><div id="modal-b"></div></div></div>
+<div id="toast" class="toast hidden"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

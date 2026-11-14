@@ -1,0 +1,9 @@
+﻿rule_id,name,layer,severity,month,plant_code,checked,failed,note
+DQ01,班次运行主键去重,DWD,error,,,8883,36,ods_mes_shift_run 按 run_id 去重，保留 load_ts 最晚的一条
+DQ02,停机原因非空且分钟>0,DWD,error,,,9159,72,剔除 reason 为空或 minutes<=0 的停机事件（不进入 fact）
+DQ03,缺陷代码必须存在于主数据,DWD,error,,,8892,36,未知缺陷代码隔离，不进入 fact_quality_defect
+DQ04,能源读数非负,DWD,error,,,2988,43,剔除 fix_kwh/ot_kwh/var_kwh 为负的能源日记录
+DQ05,出勤人数不超过排班,DWD,warn,,,2988,36,present>scheduled 的记录按 scheduled 封顶并记告警
+DQ06,到货批次去重,DWD,error,,,10368,36,ods_wms_delivery 按 rec_id 去重
+DQ07,VCS 档位合法,DWD,error,,,144,0,实际/推荐 JPH 档必须属于该车间可选档集合
+DQ08,产量分母>0,ADS,error,,,36,0,计算单车类指标时下线车数必须>0

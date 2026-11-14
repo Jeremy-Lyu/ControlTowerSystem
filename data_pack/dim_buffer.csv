@@ -1,0 +1,4 @@
+﻿buffer_code,buffer_name,upstream_shop,downstream_shop
+STK,冲压件库,ST,BD
+WBS,WBS 白车身库,BD,PT
+PBS,PBS 涂装车身库,PT,GA

@@ -1,0 +1,5 @@
+﻿shop_code,shop_name,seq,shop_type
+ST,冲压,1,车间
+BD,焊装,2,车间
+PT,涂装,3,车间
+GA,总装,4,车间

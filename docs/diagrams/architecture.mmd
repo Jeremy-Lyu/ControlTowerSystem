@@ -1,0 +1,30 @@
+flowchart TB
+  subgraph src [源系统]
+    MES[MES 生产/停线/Andon]
+    ERP[ERP 成本/订单]
+    WMS[WMS 到货/库存]
+    QMS[QMS 质量]
+    EMS[能源计量]
+    HR[HR 考勤排班]
+    VCS[VCS 测算结果]
+    CMMS[CMMS 维护]
+    EHS[EHS 安全]
+  end
+  AF[Airflow / 本地 runner]
+  subgraph dw [华为云数仓 · 演示映射为 SQLite]
+    ODS[ODS 源系统镜像]
+    DWD[DWD 清洗事实 + 维度]
+    DWS[DWS 工厂/车间/科目月汇总]
+    ADS[ADS 指标层 + 行动项]
+  end
+  BI[Power BI 报表<br/>演示：本系统 Web]
+  MES --> AF
+  ERP --> AF
+  WMS --> AF
+  QMS --> AF
+  EMS --> AF
+  HR --> AF
+  VCS --> AF
+  CMMS --> AF
+  EHS --> AF
+  AF --> ODS --> DWD --> DWS --> ADS --> BI

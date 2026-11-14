@@ -1,0 +1,8 @@
+# 演示系统本身只使用 Python 标准库（http.server + sqlite3）。
+# 下列库用于：从 KPI Excel 同步口径、导出数据包、运行测试、生成技术文档。
+openpyxl>=3.1
+PyYAML>=6.0
+pytest>=8.0
+python-docx>=1.0
+# 可选：截图与浏览器检查
+# playwright>=1.40

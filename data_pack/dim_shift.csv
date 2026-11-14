@@ -1,0 +1,5 @@
+﻿slot,slot_name,is_ot
+S1,早班,0
+S2,中班,0
+S3,夜班,0
+OT,加班班次,1

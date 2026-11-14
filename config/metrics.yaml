@@ -1,0 +1,1314 @@
+- metric_id: unit_cost
+  name: 单车转换成本
+  domain: 成本
+  level: 集团
+  grain: group_or_plant
+  definition: 统计期内转换成本摊到每台下线车。转换成本按 VCS 17 个科目，不含材料。
+  formula: Σ VCS 科目成本 ÷ 下线车数
+  sql: SELECT cost_total / prod_qty FROM dws_plant_month / dws_group_month
+  source: ERP（成本中心/科目）、MES、VCS测算结果
+  refresh: 月（日预估）
+  owner_role: 集团财务-成本控制经理
+  it_role: 数据平台工程师
+  dq_rule: 成本中心→VCS 科目映射完整；分母>0；与 VCS 测算偏差 >±5% 告警
+  direction: down
+  unit: 元/台
+  target_text: = VCS 月度测算
+  warn_text: 超测算 5%
+  example_text: 集团 ¥5,202 vs ¥4,980；A工厂 ¥5,512 vs ¥4,997
+- metric_id: cost_mix
+  name: 转换成本构成占比
+  domain: 成本
+  level: 集团
+  grain: plant
+  definition: VCS 科目归并为 人工 / 加班 / 能源 / OH / 折旧 / 班车+外包 / 其他 后各占转换成本的比例
+  formula: 分组科目成本 ÷ 转换成本合计
+  sql: SELECT grp, SUM(amount)/SUM(SUM(amount)) FROM dws_cost_account_month GROUP
+    BY grp
+  source: ERP（成本中心）
+  refresh: 月
+  owner_role: 集团财务-成本控制经理
+  it_role: 数据平台工程师
+  dq_rule: 各组之和=100%
+  direction: watch
+  unit: '%'
+  target_text: 监控项（无目标）
+  warn_text: —
+- metric_id: ach_rate
+  name: 产量达成率
+  domain: 计划交付
+  level: 集团
+  grain: group_or_plant
+  definition: 实际下线车数与 VCS 冻结版需求之比
+  formula: 实际下线车数 ÷ VCS 需求（冻结版）
+  sql: SELECT prod_qty*100.0/plan_qty FROM dws_plant_month
+  source: MES、计划排产、VCS测算结果
+  refresh: 小时
+  owner_role: 集团生产计划经理
+  it_role: 数据平台工程师
+  dq_rule: 计划取冻结版本；结果在0–120%之间
+  direction: up
+  unit: '%'
+  target_text: ≥98%
+  warn_text: 96%
+  example_text: A工厂 94.0%；集团 96.9%
+- metric_id: otd
+  name: 准时交付率
+  domain: 计划交付
+  level: 集团
+  grain: group_or_plant
+  definition: 按承诺日期完成交付的订单比例
+  formula: 按期交付订单数 ÷ 应交付订单数
+  sql: SELECT otd_num*100.0/otd_den FROM dws_plant_month
+  source: ERP（销售订单/发运）
+  refresh: 日
+  owner_role: 集团物流/销售运营经理
+  it_role: ERP接口工程师
+  dq_rule: 承诺日期非空
+  direction: up
+  unit: '%'
+  target_text: ≥95%
+  warn_text: 93%
+- metric_id: elec_kwh
+  name: 单车电耗（集团）
+  domain: 能源
+  level: 集团
+  grain: group_or_plant
+  definition: VCS 电量口径：固定（运行功率×开动小时）+ 加班（功率×加班小时）+ 变动（单车电耗×产量），摊到每台下线车
+  formula: (Σ功率×开动小时 + Σ功率×加班小时 + Σ单车电耗×产量) ÷ 下线车数
+  sql: SELECT elec_kwh/prod_qty FROM dws_plant_month
+  source: 能源计量（电表）、MES、VCS测算结果
+  refresh: 日
+  owner_role: 集团能源管理经理
+  it_role: 数据平台工程师
+  dq_rule: 电表-车间映射完整；与 VCS 测算偏差 >±5% 告警
+  direction: down
+  unit: kWh/台
+  target_text: = VCS 测算
+  warn_text: 超测算 5%
+- metric_id: hpv
+  name: 单车工时（HPV）
+  domain: 人力
+  level: 集团/工厂
+  grain: group_or_plant
+  definition: 每台下线车消耗的出勤工时与加班工时（VCS 口径 HPV）
+  formula: (在册×工作日×8h×出勤率 + 加班人·h) ÷ 下线车数
+  sql: SELECT (present_h + ot_h)/prod_qty FROM dws_plant_month
+  source: HR考勤排班、MES
+  refresh: 日
+  owner_role: 集团工业工程经理
+  it_role: 数据平台工程师
+  dq_rule: 工时与排班人数对账一致
+  direction: down
+  unit: h/台
+  target_text: = VCS 测算（示例 A工厂 ≤32.1）
+  warn_text: 超测算 5%
+- metric_id: warranty
+  name: 保修索赔率（3MIS）
+  domain: 质量
+  level: 集团/工厂
+  grain: group_or_plant
+  definition: 车辆在用3个月内的保修索赔次数（每千台）
+  formula: 3MIS索赔次数 ÷ 在用3个月车辆数 × 1000
+  sql: SELECT claims*1000.0/vehicles_in_service FROM dws_plant_month / 质量月表
+  source: 售后保修系统、质量系统
+  refresh: 月
+  owner_role: 集团质量经理
+  it_role: 数据平台工程师
+  dq_rule: VIN与生产工厂可关联；滞后指标
+  direction: down
+  unit: 次/千台
+  target_text: ≤12
+  warn_text: '12'
+- metric_id: jph
+  name: JPH达成率
+  domain: 效率
+  level: 工厂
+  grain: plant_or_shop
+  definition: 实际每小时产出与计划JPH（VCS建议档位）之比
+  formula: 实际JPH ÷ 计划JPH
+  sql: SELECT jph_rate FROM dws_shop_month；工厂取总装
+  source: MES、计划排产（VCS输出）
+  refresh: 小时
+  owner_role: 工厂生产经理
+  it_role: 数据平台工程师
+  dq_rule: 计划JPH须取当班生效版本
+  direction: up
+  unit: '%'
+  target_text: ≥97%
+  warn_text: 95%
+- metric_id: oee
+  name: OEE
+  domain: 效率
+  level: 工厂
+  grain: plant_or_shop
+  definition: 设备综合效率 = 时间开动率 × 性能开动率 × 合格品率
+  formula: 时间开动率 × 性能开动率 × 合格品率
+  sql: SELECT oee FROM dws_shop_month；工厂为四车间产量加权或标定值
+  source: MES
+  refresh: 班
+  owner_role: 工厂设备/TPM经理
+  it_role: MES接口工程师
+  dq_rule: 三项因子均在0–100%；停机原因代码非空
+  direction: up
+  unit: '%'
+  target_text: ≥85%
+  warn_text: 82%
+- metric_id: ot_rate
+  name: 加班率
+  domain: 人力
+  level: 工厂
+  grain: plant_or_shop
+  definition: 加班人·h 占标准工时的比例；加班人·h = 线体加班小时 × 班组人数
+  formula: Σ(线体加班h × 班组人数) ÷ (在册 × 工作日 × 8h)
+  sql: SELECT ot_h*100.0/std_h FROM dws_plant_month
+  source: HR考勤排班、MES、VCS测算结果
+  refresh: 日
+  owner_role: 工厂人力资源经理
+  it_role: HR接口工程师
+  dq_rule: 考勤与排班一致；人均 >60 h 告警（R4）
+  direction: eq
+  unit: '%'
+  target_text: = VCS 测算
+  warn_text: 相对测算 ±2pp 内为预警，超出为红
+- metric_id: shift_util
+  name: 班次利用率
+  domain: 效率
+  level: 工厂
+  grain: plant
+  definition: 排班时间中实际有效生产的比例
+  formula: 有效生产时间 ÷ 排班时间
+  sql: SELECT SUM(run_min)*100.0/SUM(planned_min) FROM dwd_fact_production
+  source: MES、HR考勤排班
+  refresh: 班
+  owner_role: 工厂生产经理
+  it_role: 数据平台工程师
+  dq_rule: 排班时间>0；有效时间≤排班时间
+  direction: up
+  unit: '%'
+  target_text: ≥90%
+  warn_text: 87%
+- metric_id: buffer_days
+  name: 缓冲库存天数
+  domain: 物流
+  level: 工厂
+  grain: plant
+  definition: 关键零部件（外购件）库存可支撑生产的天数；与 VCS 车间间缓存是两个指标
+  formula: 库存量 ÷ 日均需求
+  sql: SELECT buffer_days FROM dws_plant_month
+  source: MES、ERP（仓储）
+  refresh: 小时
+  owner_role: 工厂物流经理
+  it_role: ERP接口工程师
+  dq_rule: 库存非负；日均需求取滚动7日
+  direction: range
+  unit: 天
+  target_text: 1.5–2.5天
+  warn_text: 超出区间
+  range_lo: 1.5
+  range_hi: 2.5
+- metric_id: vcs_exec
+  name: VCS方案执行率
+  domain: VCS
+  level: 工厂
+  grain: plant_or_shop
+  definition: 实际 JPH档×班次 与 VCS 推荐一致、且线体加班偏差 ≤10% 的车间天数占比
+  formula: 一致车间天数 ÷ (车间数 × 工作日)
+  sql: SELECT exec_days*100.0/workdays FROM dws_shop_month
+  source: MES、排班、VCS测算结果
+  refresh: 日
+  owner_role: 工厂计划经理
+  it_role: 数据平台工程师
+  dq_rule: VCS方案版本可追溯；偏差需填写原因
+  direction: up
+  unit: '%'
+  target_text: ≥90%
+  warn_text: 80%
+- metric_id: ftt
+  name: 一次下线合格率（整车）
+  domain: 质量
+  level: 工厂
+  grain: plant
+  definition: 整车下线一次通过检验的比例
+  formula: 一次合格车数 ÷ 下线车数
+  sql: SELECT ftt_num*100.0/ftt_den FROM dws_plant_month
+  source: MES（质量）
+  refresh: 班
+  owner_role: 工厂质量经理
+  it_role: MES接口工程师
+  dq_rule: 返修记录与下线记录可关联
+  direction: up
+  unit: '%'
+  target_text: ≥92%
+  warn_text: 90%
+- metric_id: dpu
+  name: 整车DPU
+  domain: 质量
+  level: 工厂
+  grain: plant
+  definition: 每台车平均缺陷数（可按车间拆分）
+  formula: 缺陷总数 ÷ 下线车数
+  sql: SELECT defect_qty*1.0/prod_qty FROM dws_plant_month
+  source: 质量系统、MES
+  refresh: 班
+  owner_role: 工厂质量经理
+  it_role: MES接口工程师
+  dq_rule: 缺陷代码标准化；缺陷归属车间非空
+  direction: down
+  unit: ''
+  target_text: ≤0.50
+  warn_text: '0.55'
+- metric_id: audit
+  name: 整车Audit扣分
+  domain: 质量
+  level: 工厂
+  grain: plant
+  definition: 按整车审核标准抽检的平均扣分
+  formula: ∑审核扣分 ÷ 抽检车数
+  sql: SELECT audit_score*1.0/audit_cars FROM dws_plant_month
+  source: 质量系统
+  refresh: 日
+  owner_role: 工厂质量经理
+  it_role: 数据平台工程师
+  dq_rule: 抽检样本量达标
+  direction: down
+  unit: 分/车
+  target_text: ≤1.5
+  warn_text: '1.5'
+- metric_id: lg_ontime
+  name: 供应商到货准时率
+  domain: 物流
+  level: 工厂
+  grain: plant
+  definition: 按约定窗口到货的批次比例（按批次加权）
+  formula: 准时到货批次 ÷ 应到货批次
+  sql: SELECT delivery_ontime*100.0/delivery_batches FROM dws_plant_month
+  source: WMS、ERP
+  refresh: 日
+  owner_role: 工厂物流经理
+  it_role: ERP接口工程师
+  dq_rule: 到货窗口取当日生效版本；批次号唯一
+  direction: up
+  unit: '%'
+  target_text: ≥95%
+  warn_text: 90%
+- metric_id: lineside_lt4
+  name: 线边缓冲<4h零件数
+  domain: 物流
+  level: 工厂
+  grain: plant
+  definition: 线边缓冲低于4小时的关键零件数量
+  formula: count（线边缓冲 < 4h 的关键零件）
+  sql: SELECT lineside_lt4 FROM dws_plant_month
+  source: WMS、MES
+  refresh: 小时
+  owner_role: 工厂物流经理
+  it_role: 数据平台工程师
+  dq_rule: 关键零件清单取当期生效版本
+  direction: down
+  unit: 个
+  target_text: ≤10
+  warn_text: '10'
+- metric_id: en_cost
+  name: 能源成本（单车）
+  domain: 能源
+  level: 工厂
+  grain: plant
+  definition: VCS 能源科目（固定+变动+加班能耗）按分时电价折算后摊到每台车
+  formula: Σ电量 × 分时电价 ÷ 下线车数
+  sql: SELECT energy_cost/prod_qty FROM dws_plant_month
+  source: 能源计量、ERP（成本中心）
+  refresh: 日
+  owner_role: 工厂能源经理
+  it_role: 数据平台工程师
+  dq_rule: 单价取当期合同价；与财务能耗成本对账
+  direction: down
+  unit: 元/台
+  target_text: = VCS 测算
+  warn_text: 超测算 5%
+- metric_id: idle_share
+  name: 空载/待机能耗占比
+  domain: 能源
+  level: 工厂
+  grain: plant_or_shop
+  definition: 无车生产时（空载/待机/空烘）消耗的能源占总能耗比例
+  formula: 空载/待机能耗 ÷ 总能耗
+  sql: SELECT idle_kwh*100.0/elec_kwh FROM dws_plant_month
+  source: 能源计量、MES
+  refresh: 小时
+  owner_role: 工厂能源经理
+  it_role: 设备数据工程师
+  dq_rule: 设备状态与过车/生产记录时间对齐
+  direction: down
+  unit: '%'
+  target_text: ≤10%
+  warn_text: 10%
+- metric_id: peak_share
+  name: 峰时用电占比
+  domain: 能源
+  level: 工厂
+  grain: plant
+  definition: 峰时段用电量占总用电量的比例
+  formula: 峰时电量 ÷ 总电量
+  sql: SELECT peak_kwh*100.0/elec_kwh FROM dws_plant_month
+  source: 能源计量
+  refresh: 小时
+  owner_role: 工厂能源经理
+  it_role: 数据平台工程师
+  dq_rule: 时段定义取当期电价政策
+  direction: down
+  unit: '%'
+  target_text: ≤32%
+  warn_text: 32%
+- metric_id: lab_cost
+  name: 人工成本（单车，含加班）
+  domain: 人力
+  level: 工厂
+  grain: plant
+  definition: VCS 人工类科目（直接/间接人工、夜班补贴、福利社保、加班人工、超限溢价）摊到每台车
+  formula: Σ人工类科目 ÷ 下线车数
+  sql: SELECT SUM(amount)/prod_qty FROM dws_cost_account_month WHERE grp IN (人工,加班)
+  source: HR薪酬、ERP
+  refresh: 月（日预估）
+  owner_role: 工厂人力资源经理
+  it_role: HR接口工程师
+  dq_rule: 含加班费；与财务人工成本对账
+  direction: down
+  unit: 元/台
+  target_text: = VCS 测算
+  warn_text: 超测算 5%
+- metric_id: headcount
+  name: 在册/出勤人数
+  domain: 人力
+  level: 工厂
+  grain: plant
+  definition: 在册人数与日均出勤人数；VCS 定员 =（每班直接定员 + 间接定员）× 班次数
+  formula: 在册：期末在册人数；出勤：∑日出勤人数 ÷ 工作日数
+  sql: SELECT headcount, att_present/workdays FROM dws_plant_month
+  source: HR考勤排班
+  refresh: 日
+  owner_role: 工厂人力资源经理
+  it_role: HR接口工程师
+  dq_rule: 在册与组织架构一致；出勤≤在册
+  direction: watch
+  unit: 人
+  target_text: = VCS 定员
+  warn_text: —
+- metric_id: attend
+  name: 出勤率
+  domain: 人力
+  level: 工厂
+  grain: plant
+  definition: 实际出勤人次占应出勤人次的比例
+  formula: 实际出勤人次 ÷ 应出勤人次
+  sql: SELECT att_present*100.0/att_sched FROM dws_plant_month
+  source: HR考勤排班
+  refresh: 日
+  owner_role: 工厂人力资源经理
+  it_role: HR接口工程师
+  dq_rule: 请假类型完整；与排班对账
+  direction: up
+  unit: '%'
+  target_text: ≥97%
+  warn_text: 95%
+- metric_id: temp_share
+  name: 派遣+临时占比
+  domain: 人力
+  level: 工厂
+  grain: plant
+  definition: 劳务派遣与临时用工占在册人数的比例；外包按班次计费不计入人数
+  formula: (派遣 + 临时) ÷ 在册
+  sql: SELECT (disp_n+temp_n)*100.0/headcount FROM dws_plant_month
+  source: HR、外包管理台账
+  refresh: 周
+  owner_role: 工厂人力资源经理
+  it_role: HR接口工程师
+  dq_rule: 派遣单列，>10% 红色告警（法规上限）
+  direction: down
+  unit: '%'
+  target_text: ≤20%（派遣≤10%）
+  warn_text: 20%
+- metric_id: smed
+  name: 换模时间
+  domain: 冲压
+  level: 车间
+  grain: shop
+  definition: 从最后一件合格件到换模后首件合格件的时间
+  formula: ∑换模时长 ÷ 换模次数
+  sql: SELECT AVG(minutes) FROM dwd_fact_die_change
+  source: MES、设备数据
+  refresh: 班
+  owner_role: 冲压车间主任
+  it_role: MES接口工程师
+  dq_rule: 单次时长0–120分钟
+  direction: down
+  unit: 分钟/次
+  target_text: ≤10
+  warn_text: '10'
+- metric_id: die_util
+  name: 模具稼动率
+  domain: 冲压
+  level: 车间
+  grain: shop
+  definition: 模具实际生产时间占计划可用时间的比例
+  formula: 模具生产时间 ÷ 计划可用时间
+  sql: SELECT SUM(die_run_min)*100.0/SUM(die_avail_min) FROM dwd_fact_press
+  source: MES
+  refresh: 班
+  owner_role: 冲压车间主任
+  it_role: MES接口工程师
+  dq_rule: 模具编号与主数据一致
+  direction: up
+  unit: '%'
+  target_text: ≥85%
+  warn_text: 83%
+- metric_id: spm
+  name: 冲次达成率（SPM）
+  domain: 冲压
+  level: 车间
+  grain: shop
+  definition: 实际冲次与设计冲次之比
+  formula: 实际SPM ÷ 设计SPM
+  sql: SELECT SUM(actual_strokes)*100.0/SUM(design_strokes) FROM dwd_fact_press
+  source: MES、设备数据
+  refresh: 小时
+  owner_role: 冲压车间主任
+  it_role: MES接口工程师
+  dq_rule: 设计SPM取设备主数据
+  direction: up
+  unit: '%'
+  target_text: ≥90%
+  warn_text: 88%
+- metric_id: st_q
+  name: 冲压件合格率
+  domain: 冲压
+  level: 车间
+  grain: shop
+  definition: 冲压件一次检验合格比例
+  formula: 合格件数 ÷ 生产件数
+  sql: SELECT SUM(good_parts)*100.0/SUM(parts) FROM dwd_fact_press
+  source: MES（质量）
+  refresh: 班
+  owner_role: 冲压车间质量工程师
+  it_role: MES接口工程师
+  dq_rule: 报废与返修分类完整
+  direction: up
+  unit: '%'
+  target_text: ≥99%
+  warn_text: 98.8%
+- metric_id: robot_down
+  name: 机器人停机时长
+  domain: 焊装
+  level: 车间
+  grain: shop
+  definition: 机器人故障导致的累计停机时间
+  formula: ∑机器人故障停机分钟
+  sql: SELECT SUM(minutes) FROM dwd_fact_downtime WHERE reason='机器人故障'
+  source: MES、设备PLC数据
+  refresh: 小时
+  owner_role: 焊装车间主任
+  it_role: 设备数据工程师
+  dq_rule: 停机原因代码非空；与Andon记录对账
+  direction: down
+  unit: 分钟/班
+  target_text: ≤20
+  warn_text: '20'
+- metric_id: takt
+  name: 节拍达成率
+  domain: 效率
+  level: 车间
+  grain: shop
+  definition: 设计节拍与实际平均节拍之比
+  formula: 设计节拍 ÷ 实际平均节拍
+  sql: SELECT AVG(design_takt_s)/AVG(actual_takt_s)*100 FROM dwd_fact_takt
+  source: MES
+  refresh: 小时
+  owner_role: 焊装车间主任
+  it_role: MES接口工程师
+  dq_rule: 异常节拍（>3倍设计值）剔除并记录
+  direction: up
+  unit: '%'
+  target_text: ≥97%
+  warn_text: 95%
+- metric_id: body_ftt
+  name: 白车身一次合格率
+  domain: 焊装
+  level: 车间
+  grain: shop
+  definition: 白车身一次检验合格比例
+  formula: 一次合格白车身数 ÷ 白车身产出数
+  sql: SELECT ftt_rate FROM dws_shop_month WHERE shop_code='BD'
+  source: MES（质量）
+  refresh: 班
+  owner_role: 焊装车间质量工程师
+  it_role: MES接口工程师
+  dq_rule: 车身号唯一
+  direction: up
+  unit: '%'
+  target_text: ≥95%
+  warn_text: 94%
+- metric_id: paint_kwh
+  name: 单车电耗（涂装）
+  domain: 涂装
+  level: 车间
+  grain: shop
+  definition: 涂装车间 VCS 电量口径（固定+加班+变动）摊到每台车
+  formula: 涂装 (功率×开动h + 功率×加班h + 单车电耗×产量) ÷ 涂装产量
+  sql: SELECT elec_kwh/output_qty FROM dws_shop_month WHERE shop_code='PT'
+  source: 能源计量、MES
+  refresh: 小时
+  owner_role: 涂装车间主任/能源工程师
+  it_role: 数据平台工程师
+  dq_rule: 分区表计完整；与集团能耗对账
+  direction: down
+  unit: kWh/台
+  target_text: = VCS 测算
+  warn_text: 超测算 5%
+- metric_id: paint_ftt
+  name: 涂装一次合格率
+  domain: 涂装
+  level: 车间
+  grain: shop
+  definition: 车身涂装一次通过检验的比例
+  formula: 一次合格车数 ÷ 涂装车数
+  sql: SELECT ftt_rate FROM dws_shop_month WHERE shop_code='PT'
+  source: MES（质量）
+  refresh: 班
+  owner_role: 涂装车间质量工程师
+  it_role: MES接口工程师
+  dq_rule: 缺陷代码标准化
+  direction: up
+  unit: '%'
+  target_text: ≥90%
+  warn_text: 89%
+- metric_id: oven_idle
+  name: 烘房空烘时长
+  domain: 涂装
+  level: 车间
+  grain: shop
+  definition: 烘房开启但无车通过的累计时长
+  formula: ∑无车运行时长 / 班次数（三烘房平均）
+  sql: SELECT SUM(idle_min)*1.0/SUM(shifts) FROM dwd_fact_oven
+  source: 能源计量、MES
+  refresh: 班
+  owner_role: 涂装车间主任
+  it_role: 设备数据工程师
+  dq_rule: 烘房状态与过车记录时间对齐
+  direction: down
+  unit: 分钟/班
+  target_text: ≤30
+  warn_text: '30'
+- metric_id: oven_comp
+  name: 烘房开停合规率
+  domain: 涂装
+  level: 车间
+  grain: shop
+  definition: 按排产窗口执行开停的比例
+  formula: 合规开停次数 ÷ 总开停次数
+  sql: SELECT SUM(compliant)*100.0/SUM(start_stop) FROM dwd_fact_oven
+  source: MES、计划排产
+  refresh: 日
+  owner_role: 涂装车间主任
+  it_role: 数据平台工程师
+  dq_rule: 排产窗口取当日生效版本
+  direction: up
+  unit: '%'
+  target_text: ≥95%
+  warn_text: 90%
+- metric_id: ga_stop
+  name: 总装停线时长
+  domain: 总装
+  level: 车间
+  grain: shop
+  definition: 总装线累计停线时间，按原因分类（缺件/设备/质量）
+  formula: ∑停线分钟（按原因）÷ 班次当量
+  sql: SELECT SUM(stop_min)/shift_eq FROM dwd_fact_production+downtime WHERE shop_code='GA'
+  source: MES（Andon）
+  refresh: 小时
+  owner_role: 总装车间主任
+  it_role: MES接口工程师
+  dq_rule: 停线原因代码非空；与Andon对账
+  direction: down
+  unit: 分钟/班
+  target_text: ≤30
+  warn_text: '30'
+- metric_id: short_cnt
+  name: 缺件停线次数
+  domain: 总装
+  level: 车间
+  grain: shop
+  definition: 因零件短缺导致的停线次数
+  formula: ∑缺件停线次数
+  sql: SELECT COUNT(*) FROM dwd_fact_downtime WHERE reason='缺件'
+  source: MES（Andon）、ERP
+  refresh: 小时
+  owner_role: 总装车间主任/工厂物流经理
+  it_role: ERP接口工程师
+  dq_rule: 缺件记录关联零件号
+  direction: down
+  unit: 次/班
+  target_text: ≤1 次/班
+  warn_text: '1'
+- metric_id: lineside_h
+  name: 线边缓冲（小时）
+  domain: 物流
+  level: 车间
+  grain: shop
+  definition: 线边零件库存可支撑生产的小时数（关键件中位数或最低件）
+  formula: 线边库存 ÷ 小时需求
+  sql: SELECT MIN(buffer_h) FROM dwd_fact_lineside（故事关注最低件）
+  source: WMS、MES
+  refresh: 小时
+  owner_role: 工厂物流经理
+  it_role: ERP接口工程师
+  dq_rule: 库存非负；小时需求取当班JPH
+  direction: up
+  unit: 小时
+  target_text: ≥4
+  warn_text: '2'
+- metric_id: rework
+  name: 返修率
+  domain: 总装
+  level: 车间
+  grain: shop
+  definition: 下线后进入返修区的车辆比例
+  formula: 返修车数 ÷ 下线车数
+  sql: SELECT rework_qty*100.0/output_qty FROM dws_shop_month WHERE shop_code='GA'
+  source: MES（质量）
+  refresh: 班
+  owner_role: 总装车间质量工程师
+  it_role: MES接口工程师
+  dq_rule: 返修单与车辆VIN关联
+  direction: down
+  unit: '%'
+  target_text: ≤5%
+  warn_text: 5%
+- metric_id: andon
+  name: Andon响应时间
+  domain: 总装
+  level: 车间
+  grain: shop
+  definition: Andon呼叫到责任人到场的平均时长
+  formula: ∑响应时长 ÷ 呼叫次数
+  sql: SELECT SUM(resp_sec_total)/SUM(calls)/60 FROM dwd_fact_andon
+  source: MES（Andon）
+  refresh: 班
+  owner_role: 总装车间主任
+  it_role: MES接口工程师
+  dq_rule: 响应时长0–60分钟
+  direction: down
+  unit: 分钟
+  target_text: ≤3
+  warn_text: '3'
+- metric_id: job_ontime
+  name: 数据按时刷新率
+  domain: 数据治理
+  level: 集团
+  grain: group
+  definition: 调度任务按约定时间完成刷新的比例
+  formula: 按时完成任务数 ÷ 应执行任务数
+  sql: SELECT job_ontime*100.0/job_n FROM dws_plant_month（集团日志）
+  source: Airflow调度日志
+  refresh: 小时
+  owner_role: 数据治理小组
+  it_role: 数据平台运维
+  dq_rule: 失败任务自动重试并告警
+  direction: up
+  unit: '%'
+  target_text: ≥99%
+  warn_text: 97%
+- metric_id: dq_pass
+  name: 规则校验通过率
+  domain: 数据治理
+  level: 集团
+  grain: group
+  definition: 进入应用层的数据通过校验规则的比例
+  formula: 通过校验记录数 ÷ 校验记录数
+  sql: SELECT dq_passed*100.0/dq_checked FROM dws
+  source: 数仓校验结果表
+  refresh: 日
+  owner_role: 数据治理小组
+  it_role: 数据平台工程师
+  dq_rule: 未通过数据不进入ADS并通知业务负责人
+  direction: up
+  unit: '%'
+  target_text: ≥98%
+  warn_text: 96%
+- metric_id: mau
+  name: 看板周活跃用户数
+  domain: 数据治理
+  level: 集团
+  grain: group
+  definition: 每周至少访问一次看板的授权用户数（本演示按月活跃近似）
+  formula: 去重访问用户数（月）
+  sql: SELECT mau FROM dws_group via usage
+  source: 看板使用日志
+  refresh: 周
+  owner_role: 数据治理小组
+  it_role: BI开发工程师
+  dq_rule: 仅统计授权用户；剔除测试账号
+  direction: up
+  unit: 人
+  target_text: ≥150
+  warn_text: '120'
+- metric_id: cost_total
+  name: 转换成本总额（vs VCS测算）
+  domain: VCS
+  level: 工厂
+  grain: plant
+  definition: 统计期转换成本合计与 VCS 月度测算的对比，按科目拆解偏差
+  formula: Σ实际科目成本；偏差 = 实际 − VCS 测算
+  sql: SELECT cost_total, cost_plan_total FROM dws_plant_month
+  source: ERP、VCS测算结果
+  refresh: 月
+  owner_role: 工厂财务经理
+  it_role: 数据平台工程师
+  dq_rule: 科目映射完整；偏差 >±5% 告警
+  direction: eq
+  unit: 万元
+  target_text: = VCS 测算
+  warn_text: ±5%
+- metric_id: backtest
+  name: 测算-实际偏差（回测）
+  domain: VCS
+  level: 工厂
+  grain: plant
+  definition: VCS 测算与实际的偏差，成本与产量两个口径；超阈值触发对账校准
+  formula: (实际 − 测算) ÷ 测算
+  sql: SELECT (cost_total-cost_plan_total)/cost_plan_total, (prod-plan)/plan
+  source: ERP、MES、VCS测算结果
+  refresh: 月
+  owner_role: 工厂计划经理
+  it_role: 数据平台工程师
+  dq_rule: 测算与实际同场景ID/版本
+  direction: eq
+  unit: '%'
+  target_text: 成本 ±5%；产量 ±2%
+  warn_text: 阈值
+- metric_id: jph_shift
+  name: JPH档 × 班次（推荐 vs 实际）
+  domain: VCS
+  level: 车间
+  grain: shop
+  definition: 各车间实际运行的离散 JPH 档与班次数是否等于 VCS 推荐方案
+  formula: 实际档/班 = 推荐档/班 ？
+  sql: SELECT tier_act, shifts, tier_plan FROM dws_shop_month
+  source: MES、VCS测算结果
+  refresh: 日
+  owner_role: 车间主任 / 工厂计划经理
+  it_role: MES接口工程师
+  dq_rule: 档位取值属于该车间可选档集合
+  direction: watch
+  unit: ''
+  target_text: 与 VCS 推荐一致
+  warn_text: 不一致告警
+- metric_id: ot_line
+  name: 线体加班小时
+  domain: VCS
+  level: 车间
+  grain: shop
+  definition: 车间线体层面的月加班小时（不乘人数），VCS 加班决策变量
+  formula: Σ 线体加班小时
+  sql: SELECT ot_line_h_act, ot_line_h_plan FROM dws_shop_month
+  source: MES、排班、VCS测算结果
+  refresh: 日
+  owner_role: 车间主任
+  it_role: MES接口工程师
+  dq_rule: ≤ 60 h × 班次数（R4 绝对上限）
+  direction: eq
+  unit: h
+  target_text: = VCS 测算
+  warn_text: 相对测算 ±10%
+- metric_id: ot_head
+  name: 人均月加班
+  domain: VCS
+  level: 车间
+  grain: shop
+  definition: 每名员工月加班小时，R4：36 h 常规上限可突破，36–60 h 计超限溢价
+  formula: 线体加班小时 ÷ 班次数
+  sql: SELECT ot_line_h_act/shifts FROM dws_shop_month
+  source: HR考勤排班
+  refresh: 日
+  owner_role: 工厂人力资源经理
+  it_role: 数据平台工程师
+  dq_rule: '>60 h 红色告警（违规）'
+  direction: down
+  unit: h
+  target_text: ≤36 h（常规）；≤60 h（绝对）
+  warn_text: '36'
+- metric_id: ot_premium
+  name: 超限加班溢价
+  domain: VCS
+  level: 工厂
+  grain: plant
+  definition: 人均超过 36 h 部分的额外溢价成本
+  formula: Σ超限小时 × 班组人数 × 30 元/h（示例）
+  sql: SELECT amount FROM dws_cost_account_month WHERE account='超限加班溢价'
+  source: HR考勤、VCS测算结果
+  refresh: 月
+  owner_role: 工厂人力资源经理
+  it_role: 数据平台工程师
+  dq_rule: 与人均加班一致
+  direction: eq
+  unit: 万元
+  target_text: = VCS 测算
+  warn_text: 超测算
+- metric_id: backlog
+  name: 欠产/延期台数与延期成本
+  domain: VCS
+  level: 工厂
+  grain: plant
+  definition: 当月需求未完成而延期到下月的台数及延期成本（R2）
+  formula: 延期台数 = VCS 需求 − 下线；延期成本 = 台数 × 1,500 元/台·月（示例）
+  sql: SELECT plan_qty-prod_qty, amount FROM dws / 延期成本科目
+  source: MES、计划排产、VCS测算结果
+  refresh: 月
+  owner_role: 工厂计划经理
+  it_role: 数据平台工程师
+  dq_rule: 延期台数 ≥0
+  direction: down
+  unit: 台
+  target_text: 0 台
+  warn_text: '>0'
+- metric_id: wcs_buffer
+  name: 车间间缓存（月末）
+  domain: VCS
+  level: 车间
+  grain: plant
+  definition: 冲压件库 / WBS 白车身库 / PBS 涂装车身库 月末库存与上限（R1）
+  formula: 月末库存 vs 有效上限（台数上限与载具上限取小）
+  sql: SELECT level_units, cap_effective FROM buffer tables
+  source: MES/WMS、VCS测算结果
+  refresh: 日
+  owner_role: 工厂物流经理 / 工厂计划经理
+  it_role: MES接口工程师
+  dq_rule: 库存 ≤ 有效上限
+  direction: down
+  unit: 台
+  target_text: ≤有效上限
+  warn_text: 达到上限
+- metric_id: pbs_buffer
+  name: PBS缓存（月末）
+  domain: VCS
+  level: 工厂
+  grain: plant
+  definition: PBS 涂装车身库月末库存（有效上限 500 台，示例）
+  formula: 月末库存 / 有效上限
+  sql: SELECT level_units FROM dwd_fact_buffer WHERE buffer_code='PBS' 月末
+  source: MES/WMS
+  refresh: 日
+  owner_role: 工厂计划经理
+  it_role: MES接口工程师
+  dq_rule: 库存 ≤ 500
+  direction: down
+  unit: 台
+  target_text: ≤500
+  warn_text: '500'
+- metric_id: jph_change
+  name: JPH 换档次数
+  domain: VCS
+  level: 车间
+  grain: shop
+  definition: 统计期内车间 JPH 档位切换次数；v5.2 换档成本 30 万元/次 + 2 天产出（暂定）
+  formula: Σ 档位变化次数
+  sql: SELECT COUNT(DISTINCT tier changes) FROM dwd_fact_production
+  source: MES、VCS测算结果
+  refresh: 月
+  owner_role: 车间主任
+  it_role: MES接口工程师
+  dq_rule: 档位取值合法
+  direction: watch
+  unit: 次
+  target_text: 监控项
+  warn_text: 有换档需成本对比
+- metric_id: budget_limit
+  name: 预算安全边界
+  domain: VCS
+  level: 集团
+  grain: group
+  definition: 在不突破“基准 + 3%”预算前，关键驱动可承受的最大冲击
+  formula: 令成本 = 预算上限时的工资涨幅 / 需求变化 / 停线天数
+  sql: SELECT value FROM dwd_vcs_scenario WHERE scenario_type=预算安全边界
+  source: VCS 压力测试结果
+  refresh: 季
+  owner_role: 集团财务-成本控制经理
+  it_role: 数据平台工程师
+  dq_rule: 场景ID可追溯
+  direction: watch
+  unit: '%'
+  target_text: 工资 ≥+5%（示例；当前 +7.5%）
+  warn_text: —
+- metric_id: strategy_premium
+  name: 策略溢价
+  domain: VCS
+  level: 集团
+  grain: group
+  definition: 稳定优先 / 保人力 / 稳定 0.5 等策略相对成本优先的成本增量
+  formula: (策略成本 − 成本优先成本) ÷ 成本优先成本
+  sql: SELECT value FROM dwd_vcs_scenario WHERE scenario_type=策略溢价
+  source: VCS 策略前沿
+  refresh: 季
+  owner_role: 集团运营副总
+  it_role: 数据平台工程师
+  dq_rule: 同一场景、同一参数版本
+  direction: watch
+  unit: '%'
+  target_text: 监控项
+  warn_text: —
+- metric_id: over_budget_p
+  name: 超预算概率
+  domain: VCS
+  level: 集团
+  grain: group
+  definition: 在需求预测分布下，推荐方案总成本超过预算的概率（稳健评估）
+  formula: 蒙特卡洛：P(成本 > 预算)
+  sql: （演示数据固化：稳健方案 5%，见 VCS 多角度分析）
+  source: VCS 稳健评估
+  refresh: 季
+  owner_role: 集团财务-成本控制经理
+  it_role: 数据平台工程师
+  dq_rule: 样本数 ≥1,000
+  direction: down
+  unit: '%'
+  target_text: ≤10%（示例；稳健方案 5%）
+  warn_text: 10%
+- metric_id: ready
+  name: VCS 配置包就绪度
+  domain: VCS
+  level: 工厂
+  grain: plant
+  definition: 配置包技术就绪度 L0 未就绪 / L1 结构就绪 / L2 可测算 / L3 可回测
+  formula: plant_check 自动判定
+  sql: 演示固化：A工厂 L2（可测算，回测产量偏差超阈值故未到 L3）
+  source: VCS 配置包检查
+  refresh: 周
+  owner_role: 集团数据治理小组
+  it_role: 数据平台工程师
+  dq_rule: L2 以下不得发布测算
+  direction: watch
+  unit: ''
+  target_text: L3 可回测
+  warn_text: 低于 L2
+- metric_id: idle_fixed
+  name: 停线固定成本（0 班）
+  domain: VCS
+  level: 车间
+  grain: shop
+  definition: 车间整月 0 班（R3）时仍发生的固定成本
+  formula: 0 班车间 × 停线固定成本（示例 30 万元/车间·月）
+  sql: 演示：本月四车间均为 2 班，该项为 0
+  source: ERP、VCS测算结果
+  refresh: 月
+  owner_role: 工厂财务经理
+  it_role: 数据平台工程师
+  dq_rule: 0 班月份才计
+  direction: watch
+  unit: 万元
+  target_text: 监控项
+  warn_text: —
+- metric_id: budget_exec
+  name: 预算执行率
+  domain: 成本
+  level: 工厂
+  grain: plant
+  definition: 实际转换成本占 VCS 测算（视同预算）的比例
+  formula: 实际转换成本 ÷ VCS 测算成本
+  sql: SELECT cost_total*100.0/cost_plan_total FROM dws_plant_month
+  source: ERP、VCS测算结果
+  refresh: 月
+  owner_role: 工厂财务经理
+  it_role: 数据平台工程师
+  dq_rule: 同场景版本
+  direction: eq
+  unit: '%'
+  target_text: 100%（=VCS测算）
+  warn_text: ±5%
+- metric_id: copq
+  name: COPQ质量成本
+  domain: 质量
+  level: 工厂
+  grain: plant
+  definition: 质量不良成本（返修、报废、保修、复检）合计，摊到每台或总额
+  formula: Σ COPQ 科目
+  sql: SELECT copq, copq/prod_qty FROM dws_plant_month
+  source: 质量系统、ERP
+  refresh: 月
+  owner_role: 工厂质量经理
+  it_role: 数据平台工程师
+  dq_rule: 分类完整
+  direction: down
+  unit: 万元
+  target_text: 监控项
+  warn_text: 环比>+20%
+- metric_id: plan_stab
+  name: 排产稳定性（冻结期变更次数）
+  domain: 计划交付
+  level: 工厂
+  grain: plant
+  definition: 冻结期内计划变更次数
+  formula: COUNT(冻结期内变更)
+  sql: SELECT frozen_changes FROM dws_plant_month
+  source: APS/计划排产
+  refresh: 日
+  owner_role: 工厂计划经理
+  it_role: 数据平台工程师
+  dq_rule: 变更原因非空
+  direction: down
+  unit: 次
+  target_text: 监控项
+  warn_text: '>10 次/月'
+- metric_id: lead_time
+  name: 订单交付周期
+  domain: 计划交付
+  level: 工厂
+  grain: plant
+  definition: 从订单到发运的平均天数
+  formula: AVG(发运日 − 下单日)
+  sql: SELECT lead_days_sum*1.0/otd_den FROM dws_plant_month
+  source: ERP（销售订单/发运）
+  refresh: 日
+  owner_role: 集团物流/销售运营经理
+  it_role: ERP接口工程师
+  dq_rule: 日期非空
+  direction: down
+  unit: 天
+  target_text: 监控项
+  warn_text: 环比>+15%
+- metric_id: wip_days
+  name: 在制品库存天数
+  domain: 计划交付
+  level: 工厂
+  grain: plant
+  definition: 在制品可支撑生产的天数
+  formula: WIP 库存 ÷ 日均需求
+  sql: SELECT wip_days FROM dws_plant_month
+  source: MES、WMS
+  refresh: 日
+  owner_role: 工厂生产经理
+  it_role: 数据平台工程师
+  dq_rule: 库存非负
+  direction: watch
+  unit: 天
+  target_text: 监控项
+  warn_text: —
+- metric_id: fg_days
+  name: 成品库存天数
+  domain: 计划交付
+  level: 工厂
+  grain: plant
+  definition: 成品可支撑发运的天数
+  formula: 成品库存 ÷ 日均需求
+  sql: SELECT fg_days FROM dws_plant_month
+  source: WMS、ERP
+  refresh: 日
+  owner_role: 工厂物流经理
+  it_role: ERP接口工程师
+  dq_rule: 库存非负
+  direction: watch
+  unit: 天
+  target_text: 监控项
+  warn_text: —
+- metric_id: mtbf
+  name: MTBF
+  domain: 设备维护
+  level: 工厂
+  grain: plant_or_shop
+  definition: 关键设备平均故障间隔时间
+  formula: 运行时间 ÷ 故障次数
+  sql: SELECT (run_min)/(fail_events) FROM production/downtime
+  source: MES、CMMS
+  refresh: 日
+  owner_role: 工厂设备/TPM经理
+  it_role: 设备数据工程师
+  dq_rule: 故障事件与工单可关联
+  direction: up
+  unit: 小时
+  target_text: 监控项
+  warn_text: 环比下降>20%
+- metric_id: mttr
+  name: MTTR
+  domain: 设备维护
+  level: 工厂
+  grain: plant_or_shop
+  definition: 平均修复时间
+  formula: Σ纠正性维修分钟 ÷ 工单数
+  sql: SELECT repair_min*1.0/wo_cm FROM dws_plant_month
+  source: CMMS
+  refresh: 日
+  owner_role: 工厂设备/TPM经理
+  it_role: 设备数据工程师
+  dq_rule: 完工时间非空
+  direction: down
+  unit: 分钟
+  target_text: 监控项
+  warn_text: —
+- metric_id: pm_rate
+  name: 计划性维护完成率
+  domain: 设备维护
+  level: 工厂
+  grain: plant
+  definition: 计划性维护工单按期完成的比例
+  formula: 已完工 PM 工单 ÷ 计划 PM 工单
+  sql: SELECT wo_pm_done*100.0/wo_pm FROM dws_plant_month
+  source: CMMS
+  refresh: 周
+  owner_role: 工厂设备/TPM经理
+  it_role: 设备数据工程师
+  dq_rule: 计划日期非空
+  direction: up
+  unit: '%'
+  target_text: ≥95%
+  warn_text: 90%
+- metric_id: equip_avail
+  name: 关键设备可用率
+  domain: 设备维护
+  level: 工厂
+  grain: plant
+  definition: 关键设备可用时间占计划时间的比例（1−故障停机/计划）
+  formula: 1 − 故障停机分钟 ÷ 计划生产分钟
+  sql: SELECT 100-SUM(stop_min_equip)*100/SUM(planned_min)
+  source: MES、CMMS
+  refresh: 班
+  owner_role: 工厂设备/TPM经理
+  it_role: MES接口工程师
+  dq_rule: 关键设备清单生效版本
+  direction: up
+  unit: '%'
+  target_text: ≥90%
+  warn_text: 88%
+- metric_id: spare_stock
+  name: 备件库存金额
+  domain: 设备维护
+  level: 工厂
+  grain: plant
+  definition: 期末维修备件库存金额
+  formula: 备件库存金额
+  sql: SELECT spare_value FROM dws_plant_month
+  source: ERP
+  refresh: 月
+  owner_role: 工厂设备/TPM经理
+  it_role: 数据平台工程师
+  dq_rule: 与财务对账
+  direction: watch
+  unit: 万元
+  target_text: 监控项
+  warn_text: —
+- metric_id: ltir
+  name: LTIR
+  domain: 安全环境
+  level: 工厂
+  grain: group_or_plant
+  definition: 损工伤害率（每百万工时）
+  formula: LTI 次数 × 1,000,000 ÷ 工时
+  sql: SELECT lti*1e6/(std_h+ot_h) FROM dws_plant_month
+  source: EHS
+  refresh: 月
+  owner_role: 工厂安环经理
+  it_role: 数据平台工程师
+  dq_rule: 事故分级完整
+  direction: down
+  unit: ''
+  target_text: =0（力争）
+  warn_text: '>0'
+- metric_id: hazard_close
+  name: 隐患关闭率
+  domain: 安全环境
+  level: 工厂
+  grain: plant
+  definition: 已关闭隐患占当期隐患的比例
+  formula: 已关闭隐患 ÷ 隐患总数
+  sql: SELECT hazards_closed*100.0/hazards FROM dws_plant_month
+  source: EHS
+  refresh: 周
+  owner_role: 工厂安环经理
+  it_role: 数据平台工程师
+  dq_rule: 关闭日期非空
+  direction: up
+  unit: '%'
+  target_text: ≥90%
+  warn_text: 80%
+- metric_id: co2_unit
+  name: 单台碳排放
+  domain: 安全环境
+  level: 工厂
+  grain: plant
+  definition: 生产相关电力排放摊到每台下线车（示例因子 0.57 kgCO2/kWh）
+  formula: Σ电量 × 排放因子 ÷ 下线车数
+  sql: SELECT co2_kg/prod_qty FROM dws_plant_month
+  source: 能源计量
+  refresh: 日
+  owner_role: 工厂能源经理 / 工厂安环经理
+  it_role: 数据平台工程师
+  dq_rule: 因子版本可追溯
+  direction: down
+  unit: kg/台
+  target_text: 监控项
+  warn_text: —
+- metric_id: water_unit
+  name: 单台水耗
+  domain: 安全环境
+  level: 工厂
+  grain: plant
+  definition: 生产用水摊到每台下线车
+  formula: Σ水量 ÷ 下线车数
+  sql: SELECT water_m3/prod_qty FROM dws_plant_month
+  source: 能源计量（水表）
+  refresh: 日
+  owner_role: 工厂能源经理
+  it_role: 数据平台工程师
+  dq_rule: 表计完整
+  direction: down
+  unit: m³/台
+  target_text: 监控项
+  warn_text: —
+- metric_id: metric_views
+  name: 指标使用次数
+  domain: 数据治理
+  level: 集团
+  grain: group
+  definition: 期内看板页面/指标被查看的次数（演示含系统访问日志）
+  formula: Σ 浏览次数
+  sql: SELECT SUM(views) FROM dwd_fact_usage
+  source: 看板使用日志
+  refresh: 日
+  owner_role: 数据治理小组
+  it_role: BI开发工程师
+  dq_rule: 剔除测试账号
+  direction: watch
+  unit: 次
+  target_text: 监控项
+  warn_text: —
+- metric_id: disp_share
+  name: 派遣占比
+  domain: 人力
+  level: 工厂
+  grain: plant
+  definition: 劳务派遣占在册人数的比例（法规上限 10%）
+  formula: 派遣 ÷ 在册
+  sql: SELECT disp_n*100.0/headcount FROM dws_plant_month
+  source: HR
+  refresh: 周
+  owner_role: 工厂人力资源经理
+  it_role: HR接口工程师
+  dq_rule: '>10% 红色告警'
+  direction: down
+  unit: '%'
+  target_text: ≤10%
+  warn_text: 10%
+- metric_id: cost_lab_share
+  name: 人工科目占比
+  domain: 成本
+  level: 工厂
+  grain: plant
+  definition: 人工（含间接/夜班/福利）占转换成本比例
+  formula: 人工科目 ÷ 转换成本
+  sql: SELECT SUM(amount) FILTER grp=人工 / cost_total
+  source: ERP
+  refresh: 月
+  owner_role: 集团财务-成本控制经理
+  it_role: 数据平台工程师
+  dq_rule: 科目映射完整
+  direction: watch
+  unit: '%'
+  target_text: 监控项
+  warn_text: —

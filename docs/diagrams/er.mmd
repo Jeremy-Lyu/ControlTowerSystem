@@ -1,0 +1,14 @@
+erDiagram
+  dim_plant ||--o{ dwd_fact_production : has
+  dim_shop ||--o{ dwd_fact_production : has
+  dim_date ||--o{ dwd_fact_production : has
+  dim_jph_tier ||--o{ dwd_fact_vcs_plan : defines
+  dim_shift_pattern ||--o{ dwd_fact_vcs_plan : defines
+  dim_account ||--o{ dwd_fact_cost : classifies
+  dim_part ||--o{ dwd_fact_downtime : involved
+  dim_supplier ||--o{ dwd_fact_delivery : ships
+  dim_metric ||--o{ ads_kpi_value : computes
+  dwd_fact_production ||--o{ dws_shop_month : rolls_up
+  dwd_fact_cost ||--o{ dws_plant_month : rolls_up
+  dws_plant_month ||--o{ ads_kpi_value : sources
+  ads_kpi_value ||--o{ ads_action : alerts
