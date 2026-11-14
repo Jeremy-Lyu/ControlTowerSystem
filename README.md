@@ -43,7 +43,7 @@ python3 -m etl.pipeline
 | `dags/control_tower_daily.py` | Airflow DAG 示例（不必安装 Airflow） |
 | `app/` | Web 服务与看板（集团/工厂/四车间/职能/成本/计划/维护/安全/治理/**VCS联动**） |
 | `config/` | `story_targets.json`、`kpi_list.json`（58 项）、`metrics.yaml` |
-| `data/control_tower.db` | 示例库（可重建） |
+| `data/control_tower.db` | 示例库（**不入库**；首次 `./run.sh` 或 `python3 -m etl.pipeline` 自动生成） |
 | `data_pack/` | Power BI 可用的 CSV + `Control_Tower_DataPack.xlsx` |
 | `tests/` | 对账与接口测试 |
 | `docs/` | 技术文档 Markdown / Docx / PDF 与架构、ER 图 |

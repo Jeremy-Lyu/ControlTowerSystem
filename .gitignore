@@ -9,5 +9,9 @@ venv/
 # macOS
 .DS_Store
 
-# Packaging duplicates of this repo (docs/binaries/DB are kept)
+# Generated locally (python3 -m etl.pipeline or ./run.sh)
+data/*.db
+data/*.db-*
+
+# Packaging duplicates of this repo
 *.zip
