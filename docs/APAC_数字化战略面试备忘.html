@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>亚太数字化战略面试备忘 · Control Tower 作为叙事锚点</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1f1c;
+    --muted: #5a635c;
+    --line: #d5dbd6;
+    --bg: #f4f6f3;
+    --paper: #ffffff;
+    --accent: #0f5c4c;
+    --accent-soft: #e4f0ec;
+    --warn: #8a4b12;
+    --warn-soft: #f7efe6;
+    --max: 820px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(1200px 500px at 10% -10%, #e8efe9 0%, transparent 55%),
+      radial-gradient(900px 400px at 100% 0%, #ebe6df 0%, transparent 50%),
+      var(--bg);
+    font-family: "Instrument Sans", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    line-height: 1.65;
+    font-size: 16px;
+  }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 48px 24px 96px; }
+  header.hero {
+    padding: 8px 0 36px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 36px;
+  }
+  .kicker {
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 14px;
+  }
+  h1 {
+    font-family: "Noto Serif SC", "Songti SC", serif;
+    font-weight: 700;
+    font-size: clamp(28px, 4.5vw, 40px);
+    line-height: 1.25;
+    margin: 0 0 16px;
+    letter-spacing: -.02em;
+  }
+  .lede {
+    color: var(--muted);
+    font-size: 17px;
+    max-width: 62ch;
+    margin: 0;
+  }
+  nav.toc {
+    display: grid;
+    gap: 8px;
+    margin: 28px 0 0;
+    padding: 16px 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+  }
+  nav.toc a {
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 14px;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+  }
+  nav.toc a:hover { border-left-color: var(--accent); color: var(--accent); }
+  h2 {
+    font-family: "Noto Serif SC", "Songti SC", serif;
+    font-size: 24px;
+    margin: 48px 0 14px;
+    padding-top: 8px;
+    letter-spacing: -.01em;
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 28px 0 10px;
+    color: var(--accent);
+    letter-spacing: .02em;
+  }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 16px; padding-left: 1.25em; }
+  li { margin: 0 0 8px; }
+  .callout {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 14px 16px;
+    margin: 18px 0 22px;
+  }
+  .callout.warn {
+    background: var(--warn-soft);
+    border-left-color: var(--warn);
+  }
+  .callout strong { display: block; margin-bottom: 4px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 12px 0 22px;
+    background: var(--paper);
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #eef2ef;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 14px 0 22px;
+  }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 16px 16px 14px;
+  }
+  .card h4 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .card p, .card li { font-size: 14px; color: var(--muted); }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  .quote {
+    font-family: "Noto Serif SC", serif;
+    font-size: 18px;
+    line-height: 1.55;
+    margin: 20px 0;
+    padding: 18px 0 18px 18px;
+    border-left: 3px solid var(--accent);
+    color: var(--ink);
+  }
+  .script {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 16px 18px;
+    margin: 12px 0 20px;
+    font-size: 14.5px;
+  }
+  .script .label {
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  footer {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13px;
+  }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .9em;
+    background: #e8ece9;
+    padding: 1px 5px;
+  }
+  .pillrow { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 8px; }
+  .pill {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <p class="kicker">Interview Brief · APAC Digital Strategy</p>
+    <h1>如何战略地看待大型数字化项目，并组织它们</h1>
+    <p class="lede">面向「亚太区数字化战略」岗位的面试表达备忘。 业务心智模型请先看同目录 <code>业务设计一页纸.html</code>。以 Manufacturing Control Tower 为可演示锚点——重点不是展示一个看板，而是展示你如何把项目放进区域战略组合、治理与落地节奏里。</p>
+    <nav class="toc" aria-label="目录">
+      <a href="#frame">1. 战略框架：别把大项目当成「系统清单」</a>
+      <a href="#portfolio">2. 怎么组织：组合、波次、治理</a>
+      <a href="#apac">3. 亚太区特有约束与打法</a>
+      <a href="#tower">4. Control Tower 在战略叙事里的位置</a>
+      <a href="#scripts">5. 面试口述稿（可直接练）</a>
+      <a href="#needmore">6. 这个项目还需要完善吗？</a>
+    </nav>
+  </header>
+
+  <section id="frame">
+    <h2>1. 战略框架：别把大项目当成「系统清单」</h2>
+    <p>数字化战略专家看大项目，第一问不是「用什么技术」，而是：</p>
+    <ol>
+      <li><strong>价值主张</strong>：解决哪一类经营决策摩擦？（成本、交付、质量、合规、现金）</li>
+      <li><strong>决策权</strong>：谁因这个系统改变每周的行为与资源分配？</li>
+      <li><strong>数据主权与口径</strong>：跨工厂/跨国家是否能同口径对比？谁有权改定义？</li>
+      <li><strong>可复制性</strong>：能否从灯塔工厂扩到区域网络，而不是每个国家重做一套？</li>
+      <li><strong>停损条件</strong>：什么信号说明该缩范围、换波次或停掉？</li>
+    </ol>
+    <div class="callout">
+      <strong>面试金句</strong>
+      大项目不是「上一个平台」，而是「用一套可治理的能力，把分散工厂的经营结果拉到同一张决策桌上」。技术是载体，战略是选择：先统一哪些决策、后统一哪些系统。
+    </div>
+    <h3>三层拆解（面试时画在白板上）</h3>
+    <div class="grid2">
+      <div class="card">
+        <h4>经营层</h4>
+        <p>亚太 P&amp;L / 工厂转换成本 / 交付与质量风险。问：缺什么信息会导致错误资源分配？</p>
+      </div>
+      <div class="card">
+        <h4>能力层</h4>
+        <p>指标注册表、数据分层、RLS、行动闭环、与 VCS/APS 的对账机制。问：哪些能力必须集团统一？</p>
+      </div>
+      <div class="card">
+        <h4>交付层</h4>
+        <p>ETL、看板、权限、培训、变更。问：第一波最小可验证是什么？90 天能证明什么？</p>
+      </div>
+      <div class="card">
+        <h4>治理层</h4>
+        <p>联邦治理：集团定口径，工厂保数据，IT 保管道。问：争议指标怎么升级？版本怎么发布？</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="portfolio">
+    <h2>2. 怎么组织：组合、波次、治理</h2>
+    <p>亚太数字化负责人的工作，本质上是<strong>组合管理（portfolio）</strong>，不是单项目管理。</p>
+    <table>
+      <thead>
+        <tr>
+          <th>组合象限</th>
+          <th>典型项目</th>
+          <th>战略意图</th>
+          <th>组织方式</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>灯塔 / 证明价值</td>
+          <td>Control Tower、单厂 VCS 联动</td>
+          <td>验证口径、闭环、ROI 叙事</td>
+          <td>小团队 + 业务赞助人；90–180 天</td>
+        </tr>
+        <tr>
+          <td>规模化复制</td>
+          <td>多工厂模板、指标包、RLS 模型</td>
+          <td>降低边际落地成本</td>
+          <td>产品化运营；配置包就绪度门禁</td>
+        </tr>
+        <tr>
+          <td>平台底座</td>
+          <td>数仓分层、主数据、集成总线</td>
+          <td>让上层项目可叠加</td>
+          <td>平台团队；按能力路线图投资</td>
+        </tr>
+        <tr>
+          <td>合规与韧性</td>
+          <td>数据驻留、审计、安全、灾备</td>
+          <td>进入市场的许可证</td>
+          <td>与法务/IT 共治；不可议价项先锁定</td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>组织原则（可背）</h3>
+    <ul>
+      <li><strong>一件事一个老板</strong>：每个重点项目有业务 Sponsor + 数字化 Owner，避免「IT 独自背锅」。</li>
+      <li><strong>先口径后页面</strong>：指标注册表与对账测试通过，才允许规模化看板。</li>
+      <li><strong>波次而非瀑布</strong>：Wave-0 故事工厂 → Wave-1 同区域对标 → Wave-2 多国模板。</li>
+      <li><strong>用阈值管理争议</strong>：例如成本 ±5%、产量 ±2%——阈值内解释，阈值外触发校准，而不是开会辩论感觉。</li>
+      <li><strong>明示不做清单</strong>：求解器、全量预测、每个国家定制 BI，默认不进第一波。</li>
+    </ul>
+    <div class="quote">「我负责的不是把每个工厂都数字化，而是决定亚太先统一哪类决策、用什么门禁控制复制质量、以及什么项目该停。」</div>
+  </section>
+
+  <section id="apac">
+    <h2>3. 亚太区特有约束与打法</h2>
+    <p>全盘负责亚太数字化战略时，面试官会听你是否理解<strong>区域差异不是借口，而是设计输入</strong>。</p>
+    <div class="pillrow">
+      <span class="pill">多工厂成熟度不一</span>
+      <span class="pill">多语言与本地系统</span>
+      <span class="pill">数据跨境 / 驻留</span>
+      <span class="pill">总部标准 vs 本地执行</span>
+      <span class="pill">供应商生态碎片化</span>
+    </div>
+    <table>
+      <thead>
+        <tr><th>约束</th><th>错误做法</th><th>战略做法</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>工厂数字化成熟度差很大</td>
+          <td>一套大而全同时推</td>
+          <td>按就绪度 L0–L3 分波；未达 L2 不发布测算/对标</td>
+        </tr>
+        <tr>
+          <td>各国源系统不同</td>
+          <td>先统一所有 ERP</td>
+          <td>先统一 ADS 指标层与主数据映射；源系统演进并行</td>
+        </tr>
+        <tr>
+          <td>跨境数据敏感</td>
+          <td>全部上云到单一区域</td>
+          <td>「口径中央、数据就近」：区域汇总可脱敏，明细按驻留策略</td>
+        </tr>
+        <tr>
+          <td>总部要标准、工厂要灵活</td>
+          <td>强制一模一样页面</td>
+          <td>联邦治理：核心 KPI 刚性，车间专题允许本地扩展但不可改集团定义</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <strong>亚太战略一句话</strong>
+      用「统一决策口径 + 可配置落地包」替代「统一所有系统」。Control Tower 类项目证明的是前者。
+    </div>
+  </section>
+
+  <section id="tower">
+    <h2>4. Control Tower 在战略叙事里的位置</h2>
+    <p>把本仓库从「demo」升格为「战略样例」时，这样定位：</p>
+    <ul>
+      <li><strong>它是什么</strong>：制造经营控制塔的最小可行架构——分层数仓、58 项指标注册、RLS、异常→行动闭环、与 VCS 产量成本测算对账。</li>
+      <li><strong>它证明什么</strong>：目标应等于当月测算而非拍脑袋固定值；成本没超阈值 ≠ 测算准确；缺件可从集团红灯下钻到供应商。</li>
+      <li><strong>它刻意不做什么</strong>：不替代 VCS 求解器、不接真实源系统、不做生产级预测——这正是战略上的范围控制。</li>
+    </ul>
+    <h3>映射到战略岗位职责</h3>
+    <table>
+      <thead>
+        <tr><th>岗位期待</th><th>你用本项目怎么讲</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>制定区域数字化路线图</td>
+          <td>说明 Wave-0（故事工厂对账）→ Wave-1（多厂对标）→ Wave-2（配置包复制）的取舍</td>
+        </tr>
+        <tr>
+          <td>对齐业务与 IT</td>
+          <td>展示「指标口径库 + 责任角色 + DQ 规则」如何成为共同语言</td>
+        </tr>
+        <tr>
+          <td>投资组合与优先级</td>
+          <td>解释为何先做转换成本/执行率/物流缺件，而不是先上更多图表</td>
+        </tr>
+        <tr>
+          <td>治理与风险</td>
+          <td>演示角色 RLS、示例数据标签、回测阈值、行动项闭环</td>
+        </tr>
+        <tr>
+          <td>跨文化落地</td>
+          <td>强调模板化（工厂/车间/职能页）与本地切片（角色、工厂锁定）并存</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout warn">
+      <strong>分享边界（如对蜂巢等外部）</strong>
+      当前内容为脱敏示例数据，适合作为方法论文流或能力演示。正式商务场景建议 Private 仓库或打包交付，并口头声明：非真实经营数据、非生产系统。
+    </div>
+  </section>
+
+  <section id="scripts">
+    <h2>5. 面试口述稿（可直接练）</h2>
+
+    <div class="script">
+      <div class="label">开场 60 秒 · 你是谁、你怎么看数字化战略</div>
+      数字化战略在我看来不是项目清单，而是一组关于「先统一哪些决策」的选择。亚太的挑战是工厂多、系统碎、成熟度不齐。我的方法是：用经营决策摩擦排序投资，用联邦治理管口径，用波次和就绪度门禁管复制。技术平台服务这个选择，而不是反过来。
+    </div>
+
+    <div class="script">
+      <div class="label">项目深挖 90 秒 · Control Tower</div>
+      我做了一个可本地运行的制造控制塔演示：把集团—工厂—车间三层结果和 VCS 产量成本测算放在同一口径下。关键设计有三点：第一，目标等于当月 VCS 测算，废弃固定「拍脑袋」目标；第二，指标注册表定义公式、责任人、预警线，ADS 统一计算；第三，异常自动生成行动项，用角色模拟行级权限。它刻意不接真实源系统、不调用求解器——因为第一波要证明的是决策闭环，不是一次把所有系统换掉。
+    </div>
+
+    <div class="script">
+      <div class="label">组织与落地 60 秒</div>
+      若我负责亚太，会把这类项目放在「灯塔」象限：选一个故事工厂把对账跑通，再抽离成配置包——JPH 档、科目映射、阈值、RLS 模型。复制条件是就绪度达到可测算/可回测门槛。同时保留不做清单，防止范围膨胀。成功标准不是页面上线，而是管理层周会上用同一套数做资源取舍，且超阈值能触发校准。
+    </div>
+
+    <div class="script">
+      <div class="label">追问：如何排优先级？</div>
+      我用三个过滤器：① 对 P&amp;L 或交付风险的可量化影响；② 是否形成可复制能力（而不只是单点报表）；③ 数据与组织就绪度。三者都高才进 Wave-1。只有影响力没有就绪度的，先做主数据/采集补齐，而不是硬推看板。
+    </div>
+
+    <div class="script">
+      <div class="label">追问：如何面对总部标准与本地抵制？</div>
+      核心 KPI 与科目定义刚性，展示层与专题分析可本地扩展。争议走版本化变更：先改注册表和测试，再发 ADS。用回测阈值把「感觉不对」变成可裁决的规则。本地抵制往往来自怕被错误对标——所以先公开口径、再公开排名。
+    </div>
+  </section>
+
+  <section id="needmore">
+    <h2>6. 这个项目还需要完善吗？</h2>
+    <p><strong>结论：为「亚太数字化战略」面试，当前项目作为演示锚点已经够用；不必再堆功能。</strong> 战略岗考的是取舍、治理与区域复制逻辑，不是再做一个更重的产品。</p>
+    <table>
+      <thead>
+        <tr><th>优先级</th><th>建议</th><th>原因</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>必做（表达）</td>
+          <td>练熟 5 分钟演示故事 + 本文口述稿；准备一页「亚太波次图」口述</td>
+          <td>面试交付物是叙事能力</td>
+        </tr>
+        <tr>
+          <td>可选（加分）</td>
+          <td>补一页「从灯塔到亚太复制」的路线图说明（仍可用示例数据）</td>
+          <td>直接对应岗位「全盘负责区域战略」</td>
+        </tr>
+        <tr>
+          <td>可选（加分）</td>
+          <td>写清投资假设：例如减少缺件停线、加班溢价、延期成本的示意杠杆</td>
+          <td>战略岗爱问 ROI / business case</td>
+        </tr>
+        <tr>
+          <td>不必做</td>
+          <td>真实源系统接入、求解器、多语言生产化、云部署</td>
+          <td>稀释「范围控制」叙事，性价比低</td>
+        </tr>
+        <tr>
+          <td>分享前</td>
+          <td>对外用 Private / 打包；保持示例数据声明</td>
+          <td>合规与观感</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <strong>一句话回答面试官「你还缺什么？」</strong>
+      产品功能上我刻意停在可验证闭环；若进入亚太正式职责，下一步不是加图表，而是把配置包、就绪度门禁和各国数据驻留策略产品化，并建立区域投资组合评审节奏。
+    </div>
+  </section>
+
+  <footer>
+    <p>本文为面试备忘，配合仓库 <code>ControlTowerSystem</code> 使用。全部业务数字均为示例数据。</p>
+    <p>打开演示：本地 <code>./run.sh</code> → http://127.0.0.1:8050 → 右上角「演示故事」。</p>
+  </footer>
+</div>
+</body>
+</html>

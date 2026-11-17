@@ -59,6 +59,9 @@ def test_plant_page_story():
     assert code == 200 and not res.get('error')
     assert '工厂' in res['title']
     assert len(res['kpis']) >= 6
+    ids = [k['metric_id'] for k in res['kpis']]
+    assert 'unit_cost' in ids and 'ot_rate' in ids and 'vcs_exec' in ids
+    assert any(k['metric_id']=='buffer_days' and '外购件' in k['name'] for k in res['kpis'])
     texts = ' '.join(str(k.get('text') or k.get('value') or '') for k in res['kpis'])
     assert '29.5' in texts or any('29.5' in str(k) for k in res['kpis'])
     assert '81.2' in texts or any('81.2' in str(k) for k in res['kpis'])

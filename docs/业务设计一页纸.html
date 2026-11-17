@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>业务设计一页纸 · Manufacturing Control Tower</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14201c;
+    --muted: #5c675f;
+    --line: #d7ddd8;
+    --bg: #f3f5f2;
+    --paper: #fff;
+    --acc: #0b5f4e;
+    --acc-soft: #e3efe9;
+    --warn: #9a4d14;
+    --warn-soft: #f6eee5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(900px 420px at 0% 0%, #e7eee8 0%, transparent 55%),
+      var(--bg);
+    font-family: "IBM Plex Sans", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    font-size: 14.5px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 36px 20px 72px; }
+  .hero { border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 22px; }
+  .kicker { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--acc); font-weight: 700; margin: 0 0 10px; }
+  h1 { font-family: "Noto Serif SC", serif; font-size: clamp(24px, 3.6vw, 32px); line-height: 1.25; margin: 0 0 10px; }
+  .lede { color: var(--muted); margin: 0; max-width: 70ch; }
+  h2 { font-family: "Noto Serif SC", serif; font-size: 18px; margin: 28px 0 10px; }
+  h3 { font-size: 13px; color: var(--acc); margin: 16px 0 8px; letter-spacing: .03em; }
+  p, li { margin: 0 0 8px; }
+  ul { margin: 0 0 12px; padding-left: 1.2em; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--paper); border: 1px solid var(--line); padding: 14px; }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  .callout { background: var(--acc-soft); border-left: 3px solid var(--acc); padding: 12px 14px; margin: 12px 0; }
+  .callout.warn { background: var(--warn-soft); border-left-color: var(--warn); }
+  table { width: 100%; border-collapse: collapse; background: var(--paper); font-size: 13px; margin: 8px 0 14px; }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #eef2ef; font-weight: 600; }
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 14px; }
+  .step { background: var(--paper); border: 1px solid var(--line); padding: 8px 10px; font-size: 13px; font-weight: 600; }
+  .arrow { color: var(--muted); font-size: 12px; }
+  .muted { color: var(--muted); font-size: 13px; }
+  footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: .9em; background: #e8ece9; padding: 1px 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <p class="kicker">Business Design One-Pager · Example Data</p>
+    <h1>Manufacturing Control Tower · 业务设计一页纸</h1>
+    <p class="lede">给业务 / 面试官：3 分钟建立心智模型——我们为谁、解决什么经营决策、核心指标如何下钻到行动，以及刻意不做的边界。</p>
+  </header>
+
+  <div class="callout">
+    <strong>一句话</strong>
+    用统一口径把「集团经营结果 → 工厂资源与执行 → 车间现场根因 → 行动闭环」接到 VCS 产量成本测算上；目标一律等于当月测算，而不是拍脑袋固定红线。
+  </div>
+
+  <h2>1. 为谁、解决什么决策</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>主要用户</h3>
+      <ul>
+        <li>集团经营 / 成本：哪家工厂在抬高转换成本？</li>
+        <li>工厂厂长：加班与方案执行为何偏离？</li>
+        <li>总装 / 物流：缺件停线落到哪个供应商？</li>
+        <li>计划 / 财务：测算与实际如何对账、何时校准？</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>要改变的行为</h3>
+      <ul>
+        <li>周会用同一套数做资源取舍</li>
+        <li>超阈值（成本 ±5%、产量 ±2%）触发校准，而不是争论感觉</li>
+        <li>异常自动生成行动项并指定责任角色</li>
+        <li>复制到新工厂靠配置包与就绪度，而不是重做报表</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>2. 决策链（演示故事 = 设计本身）</h2>
+  <div class="flow">
+    <span class="step">集团成本红灯</span><span class="arrow">→</span>
+    <span class="step">A 工厂加班 / 执行率</span><span class="arrow">→</span>
+    <span class="step">总装缺件</span><span class="arrow">→</span>
+    <span class="step">供应商 S07</span><span class="arrow">→</span>
+    <span class="step">VCS 桥梁对账</span><span class="arrow">→</span>
+    <span class="step">行动闭环</span>
+  </div>
+  <p class="muted">活系统右上角「演示故事」约 5 分钟走完。核心演示 <strong>6 页</strong>；其余为扩展页（职能 / 治理），证明可扩展，不是当前故事核。</p>
+
+  <h2>3. 核心演示 6 页 + 扩展</h2>
+  <table>
+    <thead><tr><th>页</th><th>首屏只回答一个问题</th><th>关键 KPI</th></tr></thead>
+    <tbody>
+      <tr><td>集团总览</td><td>谁在拉高集团单车转换成本？</td><td>单车成本、产量达成、OTD、单车电耗</td></tr>
+      <tr><td>工厂视图</td><td>钱、加班、方案执行哪里歪了？</td><td>单车成本、加班率、VCS 执行率、JPH、OEE、外购件缓冲</td></tr>
+      <tr><td>总装</td><td>停线主要因缺件吗？落到哪一零件？</td><td>停线时长、缺件次数、返修、节拍</td></tr>
+      <tr><td>物流</td><td>哪家供应商拖累准时率？</td><td>到货准时率、外购件缓冲天数、线边&lt;4h</td></tr>
+      <tr><td>VCS 联动</td><td>偏差如何拆成摊薄 vs 花费？方案跑偏在哪？</td><td>总额、单车、回测、桥梁、JPH×班次、PBS</td></tr>
+      <tr><td>异常行动</td><td>预警是否变成可关闭的待办？</td><td>行动状态 / 责任角色</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">扩展页：焊装/涂装/冲压、质量/能源/人力/维护/安全、成本科目表、计划交付、数据治理、指标口径库、根因、对标。全库注册 <strong>58</strong> 项指标；面试与业务讲解只抓上表。</p>
+
+  <h2>4. 核心 12 个 KPI（业务必懂）</h2>
+  <table>
+    <thead><tr><th>KPI</th><th>为何存在</th><th>目标逻辑</th></tr></thead>
+    <tbody>
+      <tr><td>单车转换成本</td><td>经营结果主指标（17 科目，不含材料）</td><td>= VCS 当月测算</td></tr>
+      <tr><td>转换成本总额</td><td>与单车拆开：看绝对值是否破阈值</td><td>= VCS 测算；回测 ±5%</td></tr>
+      <tr><td>产量达成率</td><td>欠产会抬高单车（摊薄）</td><td>≥98%；回测产量 ±2%</td></tr>
+      <tr><td>加班率</td><td>贵不贵的人力侧</td><td>= VCS 测算（非固定 ≤8%）</td></tr>
+      <tr><td>VCS 方案执行率</td><td>有没有按推荐 JPH×班次跑</td><td>≥90%</td></tr>
+      <tr><td>JPH 达成 / OEE</td><td>节奏 vs 设备有效利用（两个问题）</td><td>计划档 / ≥85%</td></tr>
+      <tr><td>总装停线 / 缺件次数</td><td>现场损失与根因入口</td><td>≤30 分/班；≤1 次/班</td></tr>
+      <tr><td>供应商到货准时率</td><td>缺件的上游</td><td>≥95%</td></tr>
+      <tr><td>外购件缓冲天数</td><td>零部件库存天数（≠ 车身 PBS）</td><td>1.5–2.5 天</td></tr>
+      <tr><td>车间间缓存（PBS 等）</td><td>VCS R1 台数上限</td><td>≤ 有效上限</td></tr>
+      <tr><td>单车电耗 / HPV</td><td>能源与工时效率</td><td>= VCS 测算</td></tr>
+      <tr><td>测算-实际偏差</td><td>治理门禁：何时强制校准</td><td>成本 ±5% / 产量 ±2%</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>两种「缓冲」不要混</strong>
+    <em>外购件缓冲天数</em> = 零部件库存可支撑天数；<em>车间间缓存（PBS/WBS 等）</em> = 车身台数 vs 有效上限。A 工厂可同时出现「外购件缓冲偏紧」与「PBS 已满」——对象不同。
+  </div>
+
+  <h2>5. 术语 20 秒</h2>
+  <ul>
+    <li><strong>VCS</strong>：产量—成本测算（推荐 JPH 档×班次、线体加班、17 科目成本）；本演示消费测算结果，不调用求解器。</li>
+    <li><strong>FULL_COST（月）</strong> vs <strong>年度基准包</strong>：不可直接比；敏感性图已标注口径。</li>
+    <li><strong>R4</strong>：人均加班 36h 常规 / 60h 上限；超限有溢价。</li>
+  </ul>
+
+  <h2>6. 刻意不做（范围控制）</h2>
+  <ul>
+    <li>不接真实 MES/ERP；不部署生产云。</li>
+    <li>不内嵌 VCS 求解器（情景滑条为线性示意）。</li>
+    <li>第一波不做全量预测/仿真、不做每国定制整套 BI。</li>
+    <li>维护/安全等职能页证明可扩展，不是故事核。</li>
+  </ul>
+
+  <h2>7. 面试 / 业务怎么用这份材料</h2>
+  <ol>
+    <li>先读本页（3 分钟）→ 打开系统点「演示故事」。</li>
+    <li>需要战略叙事：再读 <code>APAC_数字化战略面试备忘.html</code>。</li>
+    <li>需要口径细节：系统内「指标口径库」或 <code>VCS_Data_Review.md</code> 摘要。</li>
+    <li>技术实现：附录 <code>Control_Tower_技术文档.md</code>。</li>
+  </ol>
+
+  <footer>
+    全部为合成示例数据（seed 固定、可复现）。启动：<code>./run.sh</code> → http://127.0.0.1:8050
+  </footer>
+</div>
+</body>
+</html>

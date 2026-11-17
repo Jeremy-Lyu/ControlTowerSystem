@@ -143,11 +143,11 @@
   "target_text": "≥90%"
  },
  {
-  "name": "缓冲库存天数",
+  "name": "外购件缓冲天数",
   "level": "工厂",
   "process": "全工艺",
-  "definition": "关键零部件（外购件）库存可支撑生产的天数；与 VCS 车间间缓存（冲压件库/WBS/PBS）是两个指标",
-  "formula": "缓存/库存量 ÷ 日均需求",
+  "definition": "关键零部件（外购件）库存可支撑生产的天数；与 VCS 车间间车身缓存（PBS/WBS 台数）是两个指标，不可混用",
+  "formula": "库存量 ÷ 日均需求",
   "source": "MES、ERP（仓储）",
   "refresh": "小时",
   "owner_role": "工厂物流经理",

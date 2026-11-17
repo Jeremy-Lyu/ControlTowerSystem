@@ -103,8 +103,8 @@ add(metric_id='shift_util', name='班次利用率', domain='效率', level='工�
     owner_role='工厂生产经理', it_role='数据平台工程师', dq_rule='排班时间>0；有效时间≤排班时间',
     direction='up', unit='%', target_text='≥90%', warn_text='87%')
 
-add(metric_id='buffer_days', name='缓冲库存天数', domain='物流', level='工厂', grain='plant',
-    definition='关键零部件（外购件）库存可支撑生产的天数；与 VCS 车间间缓存是两个指标',
+add(metric_id='buffer_days', name='外购件缓冲天数', domain='物流', level='工厂', grain='plant',
+    definition='关键零部件（外购件）库存可支撑生产的天数；与 VCS 车间间车身缓存（PBS/WBS 台数）是两个指标，不可混用',
     formula='库存量 ÷ 日均需求', sql='SELECT buffer_days FROM dws_plant_month', source='MES、ERP（仓储）', refresh='小时',
     owner_role='工厂物流经理', it_role='ERP接口工程师', dq_rule='库存非负；日均需求取滚动7日',
     direction='range', unit='天', target_text='1.5–2.5天', warn_text='超出区间', range_lo=1.5, range_hi=2.5)

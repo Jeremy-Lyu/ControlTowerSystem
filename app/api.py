@@ -124,7 +124,11 @@ def kpi(con, mid, month, plant=None, shop=None, nav=None):
             tgt_s = f"VCS {tgt:g}{r['unit']}" if r['unit']!='元/台' else f"VCS ¥{int(tgt):,}"
     else:
         tgt_s = tgt_txt
-    return dict(id=mid, metric_id=mid, name=m['name'] if m else mid, value=r['text'].replace('¥','').replace('万',''),
+    name = m['name'] if m else mid
+    # 展示层澄清：外购件缓冲 ≠ VCS 车间间车身缓存（PBS 等）
+    if mid == 'buffer_days':
+        name = '外购件缓冲天数'
+    return dict(id=mid, metric_id=mid, name=name, value=r['text'].replace('¥','').replace('万',''),
                 raw=r['value'], unit=r['unit'] if r['unit'] not in r['text'] else '',
                 target=tgt_s or tgt_txt, delta=_delta(r, m), status=r['status'] or 'na',
                 spark=spark, nav=nav)
@@ -256,12 +260,24 @@ def page_group(con, month, plant, shop, role):
 
 def page_plant(con, month, plant, shop, role):
     pn=PLANT_NAME[plant]
-    k = kpis(con, ['jph','oee','ot_rate','shift_util','buffer_days','vcs_exec'], month, plant)
-    cards=[insight(f'{pn} · {month}（示例）。单车转换成本见「成本 / VCS联动」页。工厂 JPH 取总装下线口径。故事线：加班率高于 VCS 测算，根因在总装缺件与方案执行偏离。' if plant=='A' else f'{pn} · {month}（示例）。')]
+    # 首屏含单车成本；外购件缓冲天数 ≠ PBS 车身缓存（见 VCS 联动）
+    k = kpis(con, [
+        ('unit_cost', dict(page='vcs', plant=plant)),
+        'ot_rate', 'vcs_exec', 'jph', 'oee', 'buffer_days',
+    ], month, plant)
+    if plant=='A':
+        cards=[insight(
+            f'{pn} · {month}（示例）。顶栏含<strong>单车转换成本</strong>（可点进 VCS联动）。'
+            f'JPH=产出节奏，OEE=设备有效利用。'
+            f'<strong>外购件缓冲天数</strong>指零部件库存（目标 1.5–2.5 天），与 VCS 页的<strong>车身 PBS/WBS 缓存台数</strong>不是同一对象。'
+            f'故事线：加班率高于 VCS 测算，根因在总装缺件与方案执行偏离。')]
+    else:
+        cards=[insight(f'{pn} · {month}（示例）。外购件缓冲天数 ≠ 车身车间间缓存（见 VCS联动）。')]
     # weekly oee/jph — use daily aggregated to week for story weeks if A oct else monthly N/A
     weeks, oee, jph = _week_series(con, month, plant)
     if weeks:
-        cards.append(echart('wj','周度 OEE / JPH达成率', '', span=6))
+        cards.append(echart('wj','周度 OEE / JPH达成率', '', span=6,
+                            note='JPH达成=相对计划档的产出节奏；OEE=可用×表现×质量，二者互补不是重复。'))
         cards[-1]['option']=dict(xAxis=dict(type='category',data=weeks), yAxis=dict(type='value',min=70,max=100),
             series=[dict(name='JPH达成率',type='line',data=jph), dict(name='OEE',type='line',data=oee)])
     shops, oees, jphs, mapd = [], [], [], {}
@@ -269,7 +285,8 @@ def page_plant(con, month, plant, shop, role):
         r=con.execute("SELECT oee,jph_rate FROM dws_shop_month WHERE month=? AND plant_code=? AND shop_code=?",(month,plant,s)).fetchone()
         shops.append(SHOP_NAME[s]); oees.append(r['oee'] if r else None); jphs.append(r['jph_rate'] if r else None)
         mapd[SHOP_NAME[s]]=dict(page={'ST':'stamping','BD':'body','PT':'paint','GA':'assembly'}[s], plant=plant, shop=s)
-    cards.append(echart('sh','四大车间 OEE vs JPH达成率','',span=6, drill=dict(field='name',map=mapd), note='点击车间进入对应车间页'))
+    cards.append(echart('sh','四大车间 OEE vs JPH达成率','',span=6, drill=dict(field='name',map=mapd),
+                        note='点击车间进入对应车间页。JPH=节奏；OEE=设备有效利用。'))
     cards[-1]['option']=dict(xAxis=dict(type='category',data=shops), yAxis=dict(type='value',min=60,max=100),
         series=[dict(name='OEE',type='bar',data=[{'value':v,'key':n} for v,n in zip(oees,shops)]),
                 dict(name='JPH达成率',type='bar',data=[{'value':v,'key':n} for v,n in zip(jphs,shops)])])
@@ -472,7 +489,7 @@ def page_logistics(con, month, plant, shop, role):
     cards.append(echart('lb','关键零件线边缓冲分布（示例）','',span=6))
     cards[-1]['option']=dict(xAxis=dict(type='category',data=[x[0] for x in bdata]), yAxis=dict(type='value',name='零件数'),
         series=[dict(type='bar',data=[{'value':n,'itemStyle':{'color':'#D64550' if i<3 else '#118DFF'}} for i,(_,n) in enumerate(bdata)])])
-    return _pack(f'物流 · {PLANT_NAME[plant]}', f'{month} · 示例数据 · 缓冲库存天数指外购件，车身缓存见 VCS联动',
+    return _pack(f'物流 · {PLANT_NAME[plant]}', f'{month} · 示例数据 · 外购件缓冲天数 ≠ 车身 PBS/WBS（见 VCS联动）',
                  crumb(dict(label='集团',nav=dict(page='group')), dict(label=PLANT_NAME[plant],nav=dict(page='plant',plant=plant)), dict(label='物流',nav=dict(page='logistics',plant=plant))),
                  k, cards, month, plant, nav=nav_status(con,month,plant))
 
@@ -587,11 +604,11 @@ def page_vcs(con, month, plant, shop, role):
                                      ORDER BY f.biz_date DESC LIMIT 1) act
                              FROM dwd_fact_vcs_buffer_plan p JOIN dim_buffer b ON b.buffer_code=p.buffer_code
                              WHERE p.month=? AND p.plant_code=? AND p.scenario_id='VCS-BASE'""",(month,plant)))
-    cards.append(table('bf','车间间缓存 vs 有效上限（R1，示例）',
+    cards.append(table('bf','车间间车身缓存 vs 有效上限（R1，示例）',
                        [{'name':'缓存'},{'name':'台数上限','num':True},{'name':'有效上限','num':True},{'name':'VCS 计划月末','num':True},{'name':'实际月末','num':True},{'name':'状态'}],
                        [[x['buffer_name'], x['cap_units'], x['cap_effective'], x['plan_end'], x['act'],
                          {'v':'已满' if x['act']>=x['cap_effective'] else '正常','pill':'bad' if x['act']>=x['cap_effective'] else 'closed'}] for x in bufs],
-                       span=5, note='有效上限 = 台数上限与载具上限取小。PBS 示例 500/500 已满。'))
+                       span=5, note='对象=车身/在制台数，不是外购件缓冲天数。有效上限=台数上限与载具上限取小。PBS 示例 500/500 已满。'))
     # sensitivity
     scen=list(con.execute("SELECT scenario_name, value FROM dwd_vcs_scenario WHERE scenario_type='敏感性' AND metric='单车转换成本'"))
     if scen:
@@ -775,15 +792,15 @@ def demo_story(con, month):
         dict(title='集团：成本超测算', nav=dict(page='group', month=month, plant='A'),
              highlight=['kpi-unit_cost','card-pbar'],
              text='集团单车转换成本 <b>¥5,202</b>，高于 VCS 测算 <b>¥4,980（+4.5%）</b>。柱图里 A工厂最红：<b>¥5,512 vs ¥4,997（+10.3%）</b>。先点进 A工厂。'),
-        dict(title='A工厂：加班与执行偏离', nav=dict(page='plant', month=month, plant='A'),
-             highlight=['kpi-ot_rate','kpi-vcs_exec','card-vcs'],
-             text='六项运营指标发红。加班率 <b>29.5%</b>（VCS 25.1%），VCS 方案执行率仅 <b>62%</b>。总装线体加班 96 h vs 建议 72.2 h，执行率 28%。瓶颈在总装。'),
+        dict(title='A工厂：成本、加班与执行偏离', nav=dict(page='plant', month=month, plant='A'),
+             highlight=['kpi-unit_cost','kpi-ot_rate','kpi-vcs_exec','card-vcs'],
+             text='顶栏可见单车成本 <b>¥5,512</b>（+10.3%）。加班率 <b>29.5%</b>（VCS 25.1%），方案执行率仅 <b>62%</b>。外购件缓冲 1.1 天偏紧（≠ PBS 车身缓存）。总装线体加班 96 h vs 建议 72.2 h，执行率 28%。瓶颈在总装。'),
         dict(title='总装：缺件占停线 54%', nav=dict(page='assembly', month=month, plant='A', shop='GA'),
              highlight=['kpi-ga_stop','kpi-short_cnt','card-parts'],
              text='停线 43.7 分钟/班（月 2,140 分钟 / 49 班当量）。缺件 1,155 分钟 / 86 次。Top 零件 <b>P-30117 线束总成，供应商 S07</b>。'),
         dict(title='物流：S07 准时率 76.5%', nav=dict(page='logistics', month=month, plant='A'),
              highlight=['kpi-lg_ontime','card-sup'],
-             text='工厂到货准时率约 89.5%（目标 95%）。S07 76.5% 垫底，且贡献两只线束零件的缺件停线。线边缓冲整体偏紧。'),
+             text='工厂到货准时率约 89.5%（目标 95%）。S07 76.5% 垫底，且贡献两只线束零件的缺件停线。<b>外购件</b>缓冲天数与线边小时偏紧；车身 PBS 是否已满请到 VCS 页看台数上限。'),
         dict(title='VCS联动：偏差怎么拆', nav=dict(page='vcs', month=month, plant='A'),
              highlight=['kpi-cost_total','kpi-backtest','card-wf'],
              text='总额 5,699.8 万 vs 测算 5,497.0 万（+3.7%，成本阈值内），但产量 −6.0% 超 ±2%。单车 +10.3% 里，产量摊薄 +319 元，花费偏差 +196 元。PBS 缓存已满。'),

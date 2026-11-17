@@ -189,11 +189,11 @@
   target_text: ≥90%
   warn_text: 87%
 - metric_id: buffer_days
-  name: 缓冲库存天数
+  name: 外购件缓冲天数
   domain: 物流
   level: 工厂
   grain: plant
-  definition: 关键零部件（外购件）库存可支撑生产的天数；与 VCS 车间间缓存是两个指标
+  definition: 关键零部件（外购件）库存可支撑生产的天数；与 VCS 车间间车身缓存（PBS/WBS 台数）是两个指标，不可混用
   formula: 库存量 ÷ 日均需求
   sql: SELECT buffer_days FROM dws_plant_month
   source: MES、ERP（仓储）
